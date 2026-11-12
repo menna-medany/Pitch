@@ -1,0 +1,548 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Smart Wheelchair Pitch Builder</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow working column. Header with a 4x3 progress strip, a tab row for the four Ps plus the finished blueprint, then a single form surface per P. */
+:root {
+  --font-display: 'Bricolage Grotesque', 'Public Sans', system-ui, sans-serif;
+  --font-body: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --bg: #f2f5f8;
+  --surface: #ffffff;
+  --field: #f6f8fb;
+  --fg: #10202f;
+  --muted: #566879;
+  --line: #d3dce5;
+  --accent: #1d5dbf;
+  --accent-ink: #ffffff;
+  --accent-soft: #e2ecfa;
+  --ok: #1b7a58;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1620;
+    --surface: #14212d;
+    --field: #0f1a24;
+    --fg: #e5edf4;
+    --muted: #93a4b4;
+    --line: #26384a;
+    --accent: #6ea8ff;
+    --accent-ink: #0a1a2e;
+    --accent-soft: #1a2e47;
+    --ok: #4fc79a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1620;
+  --surface: #14212d;
+  --field: #0f1a24;
+  --fg: #e5edf4;
+  --muted: #93a4b4;
+  --line: #26384a;
+  --accent: #6ea8ff;
+  --accent-ink: #0a1a2e;
+  --accent-soft: #1a2e47;
+  --ok: #4fc79a;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 16px/1.55 var(--font-body);
+  padding-block: 28px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 880px; margin: 0 auto; }
+
+/* Header */
+.eyebrow {
+  margin: 0;
+  font: 500 0.75rem/1.2 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+h1 {
+  margin: 8px 0 10px;
+  font: 700 clamp(1.9rem, 5vw, 2.7rem)/1.08 var(--font-display);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  color: var(--accent);
+}
+.lede { margin: 0; max-width: 60ch; color: var(--muted); }
+
+.progress { margin-top: 24px; }
+.groups { display: flex; gap: 14px; }
+.group { flex: 1; min-width: 0; }
+.segs { display: flex; gap: 3px; }
+.seg { flex: 1; height: 6px; border-radius: 3px; background: var(--line); transition: background 0.2s; }
+.seg.on { background: var(--accent); }
+.group-label {
+  margin-top: 6px;
+  font: 500 0.7rem/1.2 var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.progress-text { margin: 12px 0 0; font-size: 0.875rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-block: 26px 20px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+.tab {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 14px;
+  margin-bottom: -1px;
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.tab:hover { color: var(--fg); }
+.tab[aria-current="page"] { color: var(--fg); border-bottom-color: var(--accent); }
+.tab .n, .tab .c { font: 500 0.72rem/1 var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.tab .c.full { color: var(--ok); }
+
+a:focus-visible, button:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Form surface */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.card-head { display: flex; flex-direction: column; gap: 6px; }
+h2 {
+  margin: 0;
+  font: 700 clamp(1.3rem, 3.4vw, 1.65rem)/1.2 var(--font-display);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.intro { margin: 0; max-width: 62ch; color: var(--muted); }
+
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field label { font-weight: 600; font-size: 1.02rem; color: var(--accent); }
+.hint { margin: 0; max-width: 66ch; font-size: 0.875rem; color: var(--muted); }
+textarea {
+  width: 100%;
+  min-height: 112px;
+  margin-top: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--field);
+  color: var(--fg);
+  font: 400 0.95rem/1.55 var(--font-body);
+  resize: vertical;
+}
+textarea::placeholder { color: var(--muted); opacity: 0.85; }
+textarea:focus { border-color: var(--accent); }
+.meta { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; }
+.tag {
+  font: 500 0.72rem/1.3 var(--font-mono);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+.count { font: 500 0.75rem/1 var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.count.done { color: var(--ok); }
+
+.step-nav { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 4px; }
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 9px 18px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: 600 0.95rem/1 var(--font-body);
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn.ghost:hover { background: var(--accent-soft); filter: none; }
+.btn.warn { border-color: #b3402f; color: #b3402f; background: transparent; }
+:root[data-theme="dark"] .btn.warn { border-color: #ff8f7d; color: #ff8f7d; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .btn.warn { border-color: #ff8f7d; color: #ff8f7d; }
+}
+
+/* Blueprint view */
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.status { font-size: 0.875rem; color: var(--ok); min-height: 1.3em; }
+.fallback { width: 100%; min-height: 160px; font-family: var(--font-mono); font-size: 0.8rem; }
+.bp-part { display: flex; flex-direction: column; gap: 14px; padding-top: 22px; border-top: 1px solid var(--line); }
+.bp-part h3 { margin: 0; font: 700 1.25rem/1.2 var(--font-display); }
+.bp-item { display: flex; flex-direction: column; gap: 4px; }
+.bp-q { margin: 0; font-weight: 600; font-size: 0.95rem; color: var(--accent); }
+.bp-a { margin: 0; max-width: 68ch; white-space: pre-wrap; overflow-wrap: anywhere; }
+.bp-empty { margin: 0; color: var(--muted); font-style: italic; }
+.bp-empty a { color: var(--accent); font-style: normal; font-weight: 600; }
+
+@media (max-width: 520px) {
+  .card { padding: 20px 16px; gap: 24px; }
+  .groups { gap: 8px; }
+  .tab { padding: 10px 10px; }
+  .step-nav .btn { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; scroll-behavior: auto !important; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Pitch preparation · Builder task</p>
+    <h1>Smart Wheelchair Pitch Builder</h1>
+    <p class="lede">Complete the 4 Ps for the smart wheelchair: Product, Price, Place and Promotion. Write specific details and the strategy for bringing the product to market. Your answers save in this browser as you type.</p>
+    <div class="progress" aria-label="Progress">
+      <div class="groups" id="groups"></div>
+      <p class="progress-text" id="progress-text"></p>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+  <main id="panel"></main>
+</div>
+
+<script>
+(function () {
+  var SECTIONS = [
+    {
+      id: 'product', name: 'Product', title: 'Product (Your Smart Wheelchair)',
+      intro: 'Describe what you are selling and why a user would choose it.',
+      fields: [
+        { key: 'what', q: 'What is it?',
+          hint: 'Beyond just "a smart wheelchair," what are its unique features, benefits, and the specific problems it solves?',
+          tag: 'Pitch question #2 · What problem does it solve?',
+          ph: "Example: 'It's a voice-controlled, terrain-adaptive wheelchair with integrated health monitoring.'",
+          ex: 'A voice-controlled powered wheelchair that adapts to terrain on its own. Sensors read slopes, curbs and soft ground, then adjust motor torque and seat tilt. A companion app tracks battery range, pressure-relief reminders and fall alerts for caregivers. It solves the daily problem of users being stopped by uneven pavements, or tired from pushing.' },
+        { key: 'desirable', q: 'What makes it desirable?',
+          hint: 'Why would someone want this wheelchair over existing solutions? Focus on quality, design, and user advantages.',
+          tag: 'Pitch question #1 · What story does your design tell?',
+          ph: "Example: 'It offers unmatched independence and safety on diverse terrains, with health alerts for peace of mind.'",
+          ex: 'It gives users independence outdoors without asking for help at every curb. The aluminium frame folds to a 22-inch width for a car boot, and the seat adjusts from 16 to 20 inches. It looks like a personal mobility device, not a medical one, which matters to younger users.' },
+        { key: 'values', q: 'How does it show care, intelligence, and innovation?',
+          hint: 'Give one concrete example of each.',
+          tag: 'Pitch question #3',
+          ph: "Example: 'Care is shown through ergonomic design; intelligence through AI navigation; innovation through modular parts.'",
+          ex: 'Care: a pressure-mapping cushion and tilt reminders protect skin health. Intelligence: terrain-adaptive drive and obstacle detection. Innovation: swappable battery and sensor modules, so the chair is upgraded instead of replaced.' }
+      ]
+    },
+    {
+      id: 'price', name: 'Price', title: 'Price (What it costs and who pays)',
+      intro: 'Set a price you can defend, and show how people will afford it.',
+      fields: [
+        { key: 'amount', q: 'What is the price, and how did you arrive at it?',
+          hint: 'Include component cost, your margin, and what similar chairs sell for.',
+          tag: 'Cost-plus and market check',
+          ph: "Example: 'USD 2,400. Parts cost about USD 1,150, and similar powered chairs sell for 3,000 to 6,000.'",
+          ex: 'Target retail price: USD 2,400. Components cost about USD 1,150 (motors, battery, sensors, frame). Assembly, certification and support add USD 450, which leaves a margin of about 33%. Comparable powered chairs sell for USD 3,000 to 6,000, so we sit below the market with more features.' },
+        { key: 'payer', q: 'Who pays?',
+          hint: 'The user, the family, an insurer, a charity, a hospital?',
+          tag: 'Buyer vs. user',
+          ph: "Example: 'Mostly families; charities buy units for beneficiaries.'",
+          ex: 'In most cases the user or their family pays. A second group is charities and rehabilitation programmes that buy units for beneficiaries. Some insurers reimburse part of the cost with a doctor\'s prescription, so we will prepare the paperwork for that.' },
+        { key: 'options', q: 'What payment options make it reachable?',
+          hint: 'Instalments, rental, trade-in, warranty, subsidies.',
+          tag: 'Affordability',
+          ph: "Example: 'A 12-month instalment plan and a 2-year warranty.'",
+          ex: 'A 12-month instalment plan, a rent-to-own option at USD 90 per month, a 2-year warranty on the motors and battery, and a trade-in credit when the user upgrades the sensor module.' }
+      ]
+    },
+    {
+      id: 'place', name: 'Place', title: 'Place (How it reaches the user)',
+      intro: 'Explain where people can try and buy it, and how it is delivered and serviced.',
+      fields: [
+        { key: 'channels', q: 'Where can people try and buy it?',
+          hint: 'Clinics, medical supply stores, online with a home demo, partner organisations.',
+          tag: 'Sales channels',
+          ph: "Example: 'Rehabilitation centres for trials, medical supply stores for sales.'",
+          ex: 'Rehabilitation centres and physiotherapy clinics for trials, authorised medical supply stores for sales, and our website with a booked home demo. We start in one metropolitan area, then expand region by region.' },
+        { key: 'delivery', q: 'How does it get to the user and get fitted?',
+          hint: 'Delivery, assembly, fitting to the user\'s body, training for the user and caregiver.',
+          tag: 'Delivery and fitting',
+          ph: "Example: 'A technician delivers, fits the seat and trains the user for one hour.'",
+          ex: 'A technician delivers the chair, adjusts seat height and joystick position to the user, and trains the user and caregiver for one hour. Orders ship within 10 days.' },
+        { key: 'service', q: 'Who services and repairs it?',
+          hint: 'Spare parts, response time, remote diagnostics.',
+          tag: 'After-sales support',
+          ph: "Example: 'Regional partners repair within 48 hours using local spare parts.'",
+          ex: 'Regional service partners handle repairs within 48 hours and stock spare parts locally. The app sends remote diagnostics before a visit, so the technician arrives with the right part.' }
+      ]
+    },
+    {
+      id: 'promotion', name: 'Promotion', title: 'Promotion (How people hear about it and trust it)',
+      intro: 'Choose your audience, your single message, and the channels that carry it.',
+      fields: [
+        { key: 'message', q: 'Who are you talking to, and what is the one message?',
+          hint: 'Name the audience and write the message in one sentence.',
+          tag: 'Audience and message',
+          ph: "Example: 'Adult users and caregivers. Go where you want, without waiting for help.'",
+          ex: 'We speak to adult users with mobility impairments and their caregivers. The one message: go where you want, without waiting for help.' },
+        { key: 'channels', q: 'Which channels will carry it?',
+          hint: 'Referrals, social media, communities, events, partners.',
+          tag: 'Channels',
+          ph: "Example: 'Therapist referrals, demo videos, patient communities, expos.'",
+          ex: 'Referrals from physiotherapists and occupational therapists, short demo videos on social media, patient community groups, and live demos at rehabilitation and healthcare expos.' },
+        { key: 'trust', q: 'How will you build trust?',
+          hint: 'Safety testing, certifications, real user stories, trial periods.',
+          tag: 'Proof',
+          ph: "Example: 'Safety test results, user stories and a 14-day trial.'",
+          ex: 'User stories filmed with early testers, safety test results to the relevant wheelchair standard (ISO 7176), and a 14-day trial period with free return.' }
+      ]
+    }
+  ];
+
+  var VIEWS = SECTIONS.map(function (s) { return s.id; }).concat('blueprint');
+  var KEY = 'swpb-answers-v1';
+  var THRESH = 20;
+  var answers = {};
+  try { var raw = localStorage.getItem(KEY); if (raw) answers = JSON.parse(raw) || {}; } catch (e) { answers = {}; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(answers)); } catch (e) {} }
+
+  function k(sec, f) { return sec.id + '.' + f.key; }
+  function isDone(key) { return (answers[key] || '').trim().length >= THRESH; }
+  function wordCount(t) { var m = t.trim().match(/\S+/g); return m ? m.length : 0; }
+  function currentView() { var v = location.hash.slice(1); return VIEWS.indexOf(v) > -1 ? v : 'product'; }
+
+  function h(tag, attrs) {
+    var el = document.createElement(tag);
+    if (attrs) for (var a in attrs) {
+      if (a === 'class') el.className = attrs[a];
+      else if (a === 'text') el.textContent = attrs[a];
+      else el.setAttribute(a, attrs[a]);
+    }
+    for (var i = 2; i < arguments.length; i++) {
+      var c = arguments[i];
+      if (c == null) continue;
+      el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+    }
+    return el;
+  }
+
+  var groupsEl = document.getElementById('groups');
+  var progressText = document.getElementById('progress-text');
+  var tabsEl = document.getElementById('tabs');
+  var panel = document.getElementById('panel');
+
+  function sectionDone(sec) {
+    return sec.fields.filter(function (f) { return isDone(k(sec, f)); }).length;
+  }
+
+  function updateChrome() {
+    var view = currentView();
+    var total = 0, done = 0;
+    groupsEl.replaceChildren();
+    SECTIONS.forEach(function (sec) {
+      var segs = h('div', { class: 'segs' });
+      sec.fields.forEach(function (f) {
+        var on = isDone(k(sec, f));
+        total++; if (on) done++;
+        segs.appendChild(h('span', { class: 'seg' + (on ? ' on' : '') }));
+      });
+      groupsEl.appendChild(h('div', { class: 'group' }, segs, h('div', { class: 'group-label', text: sec.name })));
+    });
+    progressText.textContent = done + ' of ' + total + ' answers written';
+
+    tabsEl.replaceChildren();
+    SECTIONS.forEach(function (sec, i) {
+      var d = sectionDone(sec);
+      var a = h('a', { class: 'tab', href: '#' + sec.id },
+        h('span', { class: 'n', text: String(i + 1) }),
+        h('span', { text: sec.name }),
+        h('span', { class: 'c' + (d === sec.fields.length ? ' full' : ''), text: d + '/' + sec.fields.length }));
+      if (view === sec.id) a.setAttribute('aria-current', 'page');
+      tabsEl.appendChild(a);
+    });
+    var bp = h('a', { class: 'tab', href: '#blueprint' }, h('span', { text: 'Blueprint' }));
+    if (view === 'blueprint') bp.setAttribute('aria-current', 'page');
+    tabsEl.appendChild(bp);
+  }
+
+  function autosize(ta) {
+    ta.style.height = 'auto';
+    ta.style.height = Math.max(112, ta.scrollHeight + 2) + 'px';
+  }
+
+  function renderForm(idx) {
+    var sec = SECTIONS[idx];
+    var card = h('section', { class: 'card', 'aria-labelledby': 'h-' + sec.id },
+      h('div', { class: 'card-head' },
+        h('p', { class: 'eyebrow', text: 'Part ' + (idx + 1) + ' of ' + SECTIONS.length }),
+        h('h2', { id: 'h-' + sec.id, text: (idx + 1) + '. ' + sec.title }),
+        h('p', { class: 'intro', text: sec.intro })));
+
+    sec.fields.forEach(function (f) {
+      var key = k(sec, f);
+      var id = 'f-' + sec.id + '-' + f.key;
+      var ta = h('textarea', { id: id, rows: '4', placeholder: f.ph, 'aria-describedby': id + '-hint' });
+      ta.value = answers[key] || '';
+      var count = h('span', { class: 'count' });
+      function refreshCount() {
+        var w = wordCount(ta.value);
+        var done = isDone(key);
+        count.className = 'count' + (done ? ' done' : '');
+        count.textContent = w + (w === 1 ? ' word' : ' words') + (done ? ' · written' : '');
+      }
+      ta.addEventListener('input', function () {
+        answers[key] = ta.value;
+        save();
+        refreshCount();
+        autosize(ta);
+        updateChrome();
+      });
+      refreshCount();
+      card.appendChild(h('div', { class: 'field' },
+        h('label', { for: id, text: f.q }),
+        h('p', { class: 'hint', id: id + '-hint', text: f.hint }),
+        ta,
+        h('div', { class: 'meta' }, h('span', { class: 'tag', text: f.tag }), count)));
+      setTimeout(function () { autosize(ta); }, 0);
+    });
+
+    var nav = h('div', { class: 'step-nav' });
+    if (idx > 0) nav.appendChild(h('a', { class: 'btn ghost', href: '#' + SECTIONS[idx - 1].id, text: 'Back: ' + SECTIONS[idx - 1].name }));
+    else nav.appendChild(h('span'));
+    var next = idx < SECTIONS.length - 1 ? SECTIONS[idx + 1] : null;
+    nav.appendChild(h('a', { class: 'btn', href: '#' + (next ? next.id : 'blueprint'), text: next ? 'Next: ' + next.name : 'See the blueprint' }));
+    card.appendChild(nav);
+    return card;
+  }
+
+  function blueprintText() {
+    var out = ['SMART WHEELCHAIR PITCH BLUEPRINT', ''];
+    SECTIONS.forEach(function (sec, i) {
+      out.push((i + 1) + '. ' + sec.name.toUpperCase());
+      sec.fields.forEach(function (f) {
+        out.push(f.q);
+        out.push((answers[k(sec, f)] || '').trim() || '(not written yet)');
+        out.push('');
+      });
+    });
+    return out.join('\n').trim() + '\n';
+  }
+
+  function renderBlueprint() {
+    var wrap = h('section', { class: 'card', 'aria-labelledby': 'h-bp' });
+    var status = h('span', { class: 'status', role: 'status' });
+    var fallback = h('textarea', { class: 'fallback', readonly: 'readonly', 'aria-label': 'Blueprint text to copy' });
+    fallback.hidden = true;
+
+    var copyBtn = h('button', { class: 'btn', type: 'button', text: 'Copy blueprint' });
+    copyBtn.addEventListener('click', function () {
+      var text = blueprintText();
+      function manual() {
+        fallback.value = text;
+        fallback.hidden = false;
+        fallback.focus();
+        fallback.select();
+        status.textContent = 'Press Ctrl+C (or Cmd+C) to copy the selected text.';
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          fallback.hidden = true;
+          status.textContent = 'Blueprint copied.';
+        }, manual);
+      } else manual();
+    });
+
+    var fillBtn = h('button', { class: 'btn ghost', type: 'button', text: 'Fill empty fields with examples' });
+    fillBtn.addEventListener('click', function () {
+      SECTIONS.forEach(function (sec) {
+        sec.fields.forEach(function (f) {
+          var key = k(sec, f);
+          if (!(answers[key] || '').trim()) answers[key] = f.ex;
+        });
+      });
+      save(); render();
+    });
+
+    var clearBtn = h('button', { class: 'btn warn', type: 'button', text: 'Clear all answers' });
+    var armed = false, timer = null;
+    clearBtn.addEventListener('click', function () {
+      if (!armed) {
+        armed = true;
+        clearBtn.textContent = 'Click again to clear everything';
+        timer = setTimeout(function () { armed = false; clearBtn.textContent = 'Clear all answers'; }, 3500);
+        return;
+      }
+      clearTimeout(timer);
+      answers = {};
+      save(); render();
+    });
+
+    wrap.appendChild(h('div', { class: 'card-head' },
+      h('p', { class: 'eyebrow', text: 'All four Ps' }),
+      h('h2', { id: 'h-bp', text: 'Your pitch blueprint' }),
+      h('p', { class: 'intro', text: 'This is everything you have written so far, in pitch order. Copy it into your slides or your Gemini document.' })));
+    wrap.appendChild(h('div', { class: 'toolbar' }, copyBtn, fillBtn, clearBtn, status));
+    wrap.appendChild(fallback);
+
+    SECTIONS.forEach(function (sec, i) {
+      var part = h('div', { class: 'bp-part' },
+        h('p', { class: 'eyebrow', text: 'Part ' + (i + 1) + ' of ' + SECTIONS.length }),
+        h('h3', { text: sec.name }));
+      sec.fields.forEach(function (f) {
+        var val = (answers[k(sec, f)] || '').trim();
+        var item = h('div', { class: 'bp-item' }, h('p', { class: 'bp-q', text: f.q }));
+        if (val) item.appendChild(h('p', { class: 'bp-a', text: val }));
+        else item.appendChild(h('p', { class: 'bp-empty' }, 'Not written yet. ', h('a', { href: '#' + sec.id, text: 'Write it in ' + sec.name })));
+        part.appendChild(item);
+      });
+      wrap.appendChild(part);
+    });
+    return wrap;
+  }
+
+  function render() {
+    var view = currentView();
+    panel.replaceChildren(view === 'blueprint' ? renderBlueprint() : renderForm(VIEWS.indexOf(view)));
+    updateChrome();
+  }
+
+  var first = true;
+  window.addEventListener('hashchange', function () {
+    render();
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    tabsEl.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  });
+  render();
+})();
+</script>
+
+</body></html>
